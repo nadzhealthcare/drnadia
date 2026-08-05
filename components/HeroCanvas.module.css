@@ -53,6 +53,11 @@
   cursor: none;
 }
 
+.wrap[data-reveal="1"]:focus-visible {
+  outline: 1px solid rgba(244, 242, 240, 0.7);
+  outline-offset: -4px;
+}
+
 /* parked on the right edge, level with the face band, clear of both type
    bands and of the footer rule */
 .hint {

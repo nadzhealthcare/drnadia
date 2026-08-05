@@ -32,6 +32,7 @@ uniform float uBRev;
 uniform vec2  uRes;        // canvas size, css px
 uniform vec2  uMouse;      // 0..1, y up
 uniform float uHover;      // 0 = idle, 1 = pointer engaged
+uniform float uOpen;       // 0 = spotlight, 1 = the colour plate laid bare
 uniform float uVel;        // pointer speed, smoothed
 uniform float uTime;
 uniform float uIntro;      // 0 -> 1 defocus settle on mount
@@ -110,11 +111,14 @@ void main(){
   float radius = mix(0.28, 0.44, uHover) * (0.88 + 0.24 * n);
   float mask = 1.0 - smoothstep(radius * 0.55, radius, dist);
   mask *= mix(0.6, 1.0, uHover);
+  // clicking opens the mask out to the whole frame
+  mask = mix(mask, 1.0, uOpen);
 
   // displacement is an annulus: it peaks ON the reveal edge and falls to
   // nothing at the centre, so the face inside the spotlight stays sharp
   float e = (dist - radius) / (radius * 0.55);
-  float rim = exp(-e * e);
+  // no rim once it is fully open — there is no longer an edge to ripple
+  float rim = exp(-e * e) * (1.0 - uOpen);
   // the whole frame ripples a little as one slide hands over to the next
   float churn = sin(uSlide * 3.14159) * 0.9;
   float amp = (0.010 * uHover + uVel * 0.22 + 0.012 * churn) * (0.6 + n2);
@@ -183,6 +187,9 @@ const MAX_UNITS = 8;
 export default function HeroCanvas({ index }: { index: number }) {
   /** only a paired slide reveals, so only it advertises the interaction */
   const reveals = !!SLIDES[index].colour;
+  const [opened, setOpened] = useState(false);
+  /** the render loop reads this, so toggling never restarts the GL context */
+  const openRef = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -191,6 +198,18 @@ export default function HeroCanvas({ index }: { index: number }) {
   // read inside the render loop so a slide change never restarts the context
   const target = useRef(index);
   target.current = index;
+
+  const toggleOpen = () => {
+    const next = !openRef.current;
+    openRef.current = next;
+    setOpened(next);
+  };
+
+  // a new slide starts closed again
+  useEffect(() => {
+    openRef.current = false;
+    setOpened(false);
+  }, [index]);
 
   /**
    * No WebGL (or reduced motion): lay the plain <img> out with the exact
@@ -283,6 +302,7 @@ export default function HeroCanvas({ index }: { index: number }) {
       res: U("uRes"),
       mouse: U("uMouse"),
       hover: U("uHover"),
+      open: U("uOpen"),
       vel: U("uVel"),
       time: U("uTime"),
       intro: U("uIntro"),
@@ -313,6 +333,7 @@ export default function HeroCanvas({ index }: { index: number }) {
     const ptr = { x: 0.5, y: 0.55, over: false, moved: -1e9 };
     let hoverTarget = 0;
     let hover = 0;
+    let open = 0;
     let vel = 0;
     let intro = 0;
     let scroll = 0;
@@ -509,10 +530,14 @@ export default function HeroCanvas({ index }: { index: number }) {
       vel += (Math.min(speed * 0.05, 0.25) - vel) * Math.min(dt * 6, 1);
 
       hover += (hoverTarget - hover) * Math.min(dt * 3.2, 1);
+      // only a paired slide can open, and it eases rather than snapping
+      const openTarget = lit && openRef.current ? 1 : 0;
+      open += (openTarget - open) * Math.min(dt * 3.4, 1);
       intro = Math.min(1, intro + dt * 0.55);
 
       gl.uniform2f(u.mouse, cur.x, cur.y);
       gl.uniform1f(u.hover, hover);
+      gl.uniform1f(u.open, open);
       gl.uniform1f(u.vel, vel);
       gl.uniform1f(u.time, t);
       gl.uniform1f(u.intro, intro);
@@ -543,8 +568,32 @@ export default function HeroCanvas({ index }: { index: number }) {
       className={styles.wrap}
       data-ready="0"
       data-reveal={reveals ? "1" : "0"}
+      data-open={opened ? "1" : "0"}
       data-cursor={reveals ? "media" : undefined}
-      data-cursor-label={reveals ? "Reveal" : undefined}
+      data-cursor-label={reveals ? (opened ? "Close" : "Reveal") : undefined}
+      /* a real control rather than a bare click handler, so it can be
+         reached and fired from the keyboard as well */
+      role={reveals ? "button" : undefined}
+      tabIndex={reveals ? 0 : undefined}
+      aria-pressed={reveals ? opened : undefined}
+      aria-label={
+        reveals
+          ? opened
+            ? "Hide the colour portrait"
+            : "Reveal the colour portrait"
+          : undefined
+      }
+      onClick={reveals ? toggleOpen : undefined}
+      onKeyDown={
+        reveals
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleOpen();
+              }
+            }
+          : undefined
+      }
     >
       {fallback ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -561,7 +610,7 @@ export default function HeroCanvas({ index }: { index: number }) {
       <span className={styles.sr}>Portrait of Dr. Nadia Choudhry</span>
       {reveals && (
         <span className={styles.hint} aria-hidden="true">
-          Move to reveal
+          {opened ? "Click to close" : "Click to reveal"}
         </span>
       )}
     </div>
