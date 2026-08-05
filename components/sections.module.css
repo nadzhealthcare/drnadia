@@ -488,6 +488,9 @@
 @media (max-width: 860px) {
   .bandInner,
   .bandInner[data-media="portrait"],
+  /* the flipped variant carries two attributes, so it needs naming here to
+     outrank its own rule — a media query adds no specificity of its own */
+  .bandInner[data-media="portrait"][data-flip="1"],
   .crow,
   .drow {
     grid-template-columns: 1fr;

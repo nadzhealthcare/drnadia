@@ -217,19 +217,40 @@
 }
 
 @media (max-width: 900px), (prefers-reduced-motion: reduce) {
+  /*
+   * The field comes first in the DOM because it is absolutely positioned on
+   * a wide screen, where source order does not matter. Once it goes static
+   * that order shows, putting a wall of pictures above the quote — so the
+   * column is ordered explicitly here.
+   */
   .stage {
     min-height: 0;
-    display: block;
+    display: flex;
+    flex-direction: column;
     text-align: center;
+  }
+  .quote {
+    order: 1;
+  }
+  .field {
+    order: 2;
+  }
+  .mark {
+    order: 3;
   }
   .line {
     max-width: 18ch;
   }
+  /*
+   * Columns rather than a grid: the cards keep their own ratios, and a grid
+   * row sized to its tallest item leaves a hole under every landscape card
+   * that shares a row with a portrait one.
+   */
   .field {
     position: static;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    display: block;
+    columns: 2;
+    column-gap: 10px;
     margin-top: clamp(32px, 6vh, 60px);
     perspective: none;
     pointer-events: auto;
@@ -240,7 +261,10 @@
   .card[data-orient="land"],
   .card[data-orient="port"] {
     position: static;
-    width: auto;
+    display: block;
+    width: 100%;
+    margin: 0 0 10px;
+    break-inside: avoid;
     box-shadow: none;
   }
   .float {
