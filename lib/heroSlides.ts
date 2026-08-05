@@ -44,7 +44,7 @@ export const SLIDES: Slide[] = [
     mono: "/assets/hero_nadia2.webp",
     colour: "/assets/hero_nadia1.webp",
     img: { w: 2466, h: 1209 },
-    face: { left: 0.39, right: 0.53, top: 0.235, bottom: 0.575 },
+    face: { left: 0.39, right: 0.53, top: 0.232, bottom: 0.592 },
     anchorX: 0.5,
     /*
      * At 2.04:1 every plate here is wider than an ordinary viewport, so cover
