@@ -1,0 +1,518 @@
+/* ── statement ──────────────────────────────────────────── */
+.stmt {
+  padding: clamp(88px, 16vh, 190px) var(--pad);
+  text-align: center;
+}
+.stmtLead {
+  font-size: clamp(24px, 4vw, 54px);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: -0.028em;
+  max-width: 17ch;
+  margin: 26px auto 0;
+}
+
+/* the italic runs sit in the same ink as the rest of the line */
+.stmtLead i {
+  color: var(--ink);
+}
+.cols {
+  display: flex;
+  gap: clamp(20px, 4vw, 60px);
+  justify-content: center;
+  margin-top: clamp(34px, 6vh, 60px);
+  flex-wrap: wrap;
+}
+.cols p {
+  max-width: 36ch;
+  text-align: left;
+}
+
+/* ── band ───────────────────────────────────────────────── */
+.band {
+  padding: clamp(60px, 10vh, 130px) var(--pad);
+}
+.bandInner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 5vw, 80px);
+  align-items: center;
+}
+.bandInner[data-flip="1"] .bandMedia {
+  order: 2;
+}
+
+/*
+ * A portrait band cannot use equal columns. Its figure carries an aspect-ratio
+ * and a max-height, and a constrained height on a ratio box transfers into a
+ * max-width — so the media settles well inside a 1fr track and leaves a dead
+ * strip between it and the copy. Sizing both tracks to their content and
+ * centring the pair closes that strip.
+ */
+.bandInner[data-media="portrait"] {
+  grid-template-columns: auto minmax(0, 520px);
+  justify-content: center;
+  gap: clamp(24px, 4vw, 72px);
+}
+/* flipped, the copy leads — so the tracks swap with it */
+.bandInner[data-media="portrait"][data-flip="1"] {
+  grid-template-columns: minmax(0, 520px) auto;
+}
+.bandMedia {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #17181a;
+}
+/* the parallax wrapper is oversized so the scrub never exposes an edge */
+.bandMedia > div {
+  position: absolute;
+  inset: -14% 0;
+}
+.bandMedia img,
+.bandMedia video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+  display: block;
+}
+
+/*
+ * These sources are portrait, so the band takes their own aspect instead of
+ * the landscape crop — a 4:3 box would slice the subjects' heads off. Capped
+ * in svh so it never outgrows the viewport, and the parallax wrapper is
+ * oversized less here because a portrait picture in a portrait frame has far
+ * less spare pixel to give away.
+ */
+/*
+ * Width is stated rather than inherited from the track: everything inside is
+ * absolutely positioned for the parallax, so the figure has no in-flow content
+ * and an auto-sized column would collapse it to nothing. Height then follows
+ * from the ratio.
+ */
+.bandPortrait {
+  --reel-h: min(76svh, 640px);
+  /* no percentage here: the track is auto-sized, so a percentage width would
+     resolve against a track that is itself waiting on this element */
+  width: calc(var(--reel-h) * 3 / 4);
+  aspect-ratio: 3 / 4;
+  max-height: var(--reel-h);
+}
+.bandPortrait > div {
+  inset: -7% 0;
+}
+.bandMedia::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 18, 20, 0.15),
+    rgba(18, 18, 20, 0.55)
+  );
+}
+.bandMedia figcaption {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  z-index: 2;
+}
+.bandCopy h3 {
+  font-size: clamp(22px, 3.4vw, 42px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
+  margin: 14px 0 16px;
+}
+.bandCopy h3 i {
+  font-weight: 400;
+}
+.bandCopy p {
+  max-width: 44ch;
+}
+.rule {
+  height: 1px;
+  background: var(--faint);
+  margin: 22px 0 0;
+  transform-origin: left;
+}
+
+/* ── recognition rows ───────────────────────────────────── */
+.rows {
+  border-top: 1px solid var(--faint);
+}
+.row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  /* column gap only — a row gap here would push the revealed picture away
+     from the entry it belongs to */
+  gap: 0 clamp(14px, 4vw, 56px);
+  border-bottom: 1px solid var(--faint);
+  padding: 18px 0;
+  align-items: baseline;
+  transition: padding-left 0.45s var(--ease);
+  position: relative;
+}
+.row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease);
+}
+.row:hover {
+  padding-left: 14px;
+}
+.row:hover::before {
+  transform: scaleX(1);
+}
+.yr {
+  font-size: 11px;
+  color: var(--dim);
+}
+.txt {
+  font-size: 13px;
+  line-height: 1.65;
+  font-weight: 300;
+  max-width: 62ch;
+}
+.txt b {
+  font-weight: 500;
+}
+.rowMark {
+  font-size: 10px;
+  color: var(--dim);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: 0.45s var(--ease);
+}
+.row:hover .rowMark {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * The picture that opens under a row on hover. It sits in the text column of
+ * an implicit second grid row, and animates its height from zero — the inner
+ * margin is inside the clipped box, so the gap collapses with it.
+ */
+.rowShot {
+  grid-column: 2;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    height 0.62s var(--ease),
+    opacity 0.45s var(--ease);
+}
+
+.row:hover .rowShot,
+.row:focus-within .rowShot {
+  height: var(--shot-h, 210px);
+  opacity: 1;
+}
+
+/* no hover to give, so the picture simply stays open — otherwise it would be
+   downloaded on touch devices and never seen */
+@media (hover: none), (pointer: coarse) {
+  .rowShot {
+    height: var(--shot-h, 210px);
+    opacity: 1;
+  }
+}
+
+.rowShot img {
+  width: clamp(220px, 24vw, 320px);
+  height: calc(var(--shot-h, 210px) - 18px);
+  margin-top: 18px;
+  object-fit: cover;
+  /* framed per picture, so the crop lands on the subject rather than the
+     backdrop above them */
+  object-position: var(--shot-pos, 50% 40%);
+  display: block;
+}
+
+/* ── institutions grid ──────────────────────────────────── */
+.collab {
+  text-align: center;
+  padding-top: clamp(56px, 9vh, 100px);
+}
+.collab h3 {
+  font-size: clamp(20px, 3.2vw, 40px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+.collab h3 i {
+  display: block;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: clamp(28px, 5vh, 52px);
+}
+.cell {
+  background: rgba(244, 242, 240, 0.035);
+  height: 84px;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border: 1px solid rgba(244, 242, 240, 0.05);
+  transition: background 0.4s var(--ease), transform 0.4s var(--ease),
+    border-color 0.4s;
+}
+.cell:hover {
+  background: rgba(244, 242, 240, 0.09);
+  border-color: rgba(244, 242, 240, 0.14);
+  transform: translateY(-3px);
+}
+.cell p {
+  font-size: 10.5px;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+.cell span {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+/* ── process ────────────────────────────────────────────── */
+.proc {
+  padding: clamp(80px, 13vh, 160px) var(--pad);
+}
+.procQ {
+  font-size: clamp(20px, 3.2vw, 40px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.18;
+  margin-bottom: clamp(34px, 6vh, 64px);
+  max-width: 20ch;
+}
+.procList {
+  list-style: none;
+  border-top: 1px solid var(--faint);
+}
+.procItem {
+  border-bottom: 1px solid var(--faint);
+  padding: clamp(14px, 2.4vh, 26px) 0;
+  cursor: default;
+}
+.procHead {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(12px, 3vw, 34px);
+  transition: transform 0.55s var(--ease);
+}
+.procItem:hover .procHead {
+  transform: translateX(clamp(6px, 1.6vw, 20px));
+}
+.procNum {
+  font-size: 11px;
+  color: var(--dim);
+  min-width: 34px;
+}
+.procName {
+  font-size: clamp(28px, 5.6vw, 78px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  transition: opacity 0.5s;
+}
+.procList:hover .procName {
+  opacity: 0.42;
+}
+.procItem:hover .procName {
+  opacity: 1;
+}
+.procBody {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s var(--ease), opacity 0.5s;
+  opacity: 0;
+}
+.procItem:hover .procBody {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.procBody > div {
+  overflow: hidden;
+}
+.procBody p {
+  max-width: 52ch;
+  padding: 12px 0 2px clamp(46px, 6vw, 68px);
+}
+
+/* ── detail ─────────────────────────────────────────────── */
+.detail {
+  position: relative;
+  overflow: hidden;
+}
+.detailBg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.detailBg > div {
+  position: absolute;
+  inset: -12% 0;
+}
+.detailBg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* pushed off-centre so the copy never sits across her face */
+  object-position: 82% 20%;
+  filter: grayscale(0.55);
+  will-change: transform;
+}
+.detailBg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(16, 17, 19, 0.94), rgba(16, 17, 19, 0.6)),
+    linear-gradient(180deg, rgba(16, 17, 19, 0.7), rgba(16, 17, 19, 0.88));
+}
+.drow {
+  display: grid;
+  grid-template-columns: 1.15fr 0.6fr 1fr;
+  gap: clamp(16px, 4vw, 50px);
+  padding: clamp(24px, 3.6vw, 44px) var(--pad);
+  border-bottom: 1px solid rgba(244, 242, 240, 0.13);
+  align-items: start;
+}
+.drow:last-child {
+  border-bottom: 0;
+}
+.drow h4 {
+  font-size: clamp(13px, 1.5vw, 18px);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin-bottom: 9px;
+}
+.dlist {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(13px, 1.4vw, 16px);
+  line-height: 1.6;
+}
+.dph {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+}
+
+/* ── contact ────────────────────────────────────────────── */
+.contact {
+  padding: clamp(80px, 13vh, 160px) var(--pad) 0;
+}
+.contact h2 {
+  font-size: clamp(34px, 6.8vw, 100px);
+  font-weight: 500;
+  letter-spacing: -0.042em;
+  line-height: 0.98;
+  margin-bottom: clamp(30px, 5vh, 56px);
+}
+.crow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(20px, 5vw, 70px);
+  align-items: start;
+}
+.crow .l {
+  font-size: 13px;
+  line-height: 1.75;
+  font-weight: 300;
+  max-width: 42ch;
+  color: var(--dim);
+}
+.crow .l i {
+  color: var(--ink);
+}
+.links2 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.links2 a {
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--ink);
+  padding: 7px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.82;
+  transition: opacity 0.35s, gap 0.4s var(--ease), transform 0.4s var(--ease);
+  border-bottom: 1px solid transparent;
+}
+.links2 a:hover {
+  opacity: 1;
+  gap: 18px;
+  transform: translateX(4px);
+}
+.links2 a em {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 10px;
+  color: var(--dim);
+}
+.footer {
+  margin-top: clamp(64px, 11vh, 130px);
+  border-top: 1px solid var(--faint);
+  padding: 16px 0 26px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.fb {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 860px) {
+  .bandInner,
+  .bandInner[data-media="portrait"],
+  .crow,
+  .drow {
+    grid-template-columns: 1fr;
+  }
+  /* stacked, the pair fills the column again — the track is 1fr here, so a
+     percentage width is no longer circular */
+  .bandInner[data-media="portrait"] {
+    justify-content: stretch;
+  }
+  .bandPortrait {
+    width: 100%;
+  }
+  .bandInner[data-flip="1"] .bandMedia {
+    order: 0;
+  }
+  .drow {
+    gap: 10px;
+  }
+  .row {
+    grid-template-columns: 72px 1fr;
+  }
+  .rowMark {
+    display: none;
+  }
+  .cols p {
+    text-align: left;
+  }
+}

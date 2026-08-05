@@ -1,0 +1,117 @@
+.dock {
+  position: fixed;
+  right: clamp(14px, 2.4vw, 34px);
+  bottom: clamp(14px, 3vh, 34px);
+  /* above the grain overlay (90) and the bespoke cursor (95), below the
+     lightbox (200) so an open picture still covers it */
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.links {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Each mark carries its own delay so they arrive in sequence, and the closed
+ * state is driven off the parent rather than unmounting — the links stay in
+ * the DOM so the transition has something to animate.
+ */
+.links li {
+  opacity: 0;
+  transform: translateX(14px) scale(0.86);
+  pointer-events: none;
+  transition:
+    opacity 0.4s var(--ease),
+    transform 0.5s var(--ease);
+  transition-delay: calc((3 - var(--i)) * 40ms);
+}
+
+.dock[data-open="1"] .links li {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition-delay: calc(var(--i) * 55ms);
+}
+
+.icon,
+.toggle {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 242, 240, 0.16);
+  background: rgba(20, 20, 22, 0.72);
+  backdrop-filter: blur(10px);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 0.4s var(--ease),
+    border-color 0.4s var(--ease),
+    color 0.4s var(--ease),
+    transform 0.4s var(--ease);
+}
+
+.icon svg,
+.toggle svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.icon:hover,
+.toggle:hover,
+.icon:focus-visible,
+.toggle:focus-visible {
+  background: var(--ink);
+  border-color: transparent;
+  color: #141416;
+  transform: translateY(-2px);
+}
+
+.icon:focus-visible,
+.toggle:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.mailLink {
+  border-color: rgba(244, 242, 240, 0.32);
+}
+
+/* the toggle carries the same envelope, and turns as the dock opens */
+.toggle {
+  width: 52px;
+  height: 52px;
+  border-color: rgba(244, 242, 240, 0.28);
+}
+.toggle svg {
+  width: 19px;
+  height: 19px;
+}
+.bars {
+  display: grid;
+  place-items: center;
+  transition: transform 0.5s var(--ease);
+}
+.dock[data-open="1"] .bars {
+  transform: rotate(-90deg) scale(0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .links li,
+  .icon,
+  .toggle,
+  .bars {
+    transition: none;
+  }
+}

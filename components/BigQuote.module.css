@@ -1,0 +1,255 @@
+.stage {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(70px, 12vh, 150px) var(--pad);
+  overflow: hidden;
+}
+
+/*
+ * One shared perspective for the whole field, so the cards read as a single
+ * depth rather than six unrelated zooms. preserve-3d lets each card keep its
+ * own translateZ inside it.
+ */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* only the cards take clicks; the rest of the field stays transparent to
+     the pointer so it never swallows anything behind it */
+  pointer-events: none;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+}
+
+.card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* aspect-ratio is set inline from each source's own pixel size; only the
+     width is decided here, per orientation, so the two shapes carry a
+     comparable visual weight */
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+  /* centring is GSAP's xPercent/yPercent, not a CSS translate: the CSS
+     property gets folded into GSAP's own transform, and it is read before
+     aspect-ratio has resolved the height — so the vertical half never lands */
+  overflow: hidden;
+  will-change: transform, opacity, filter;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  transition: box-shadow 0.5s var(--ease);
+}
+
+.card[data-orient="land"] {
+  width: clamp(168px, 19vw, 300px);
+}
+.card[data-orient="port"] {
+  width: clamp(120px, 13.5vw, 214px);
+}
+
+.card:hover,
+.card:focus-visible {
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.66);
+}
+.card:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+}
+/* the scrim lifts on hover so the picture reads at full strength */
+.card:hover::after,
+.card:focus-visible::after {
+  opacity: 0;
+}
+
+/*
+ * The idle drift. It sits on an inner element rather than the card, because
+ * GSAP owns the card's transform for the flight and would overwrite anything
+ * else written there. Oversized on both axes so the bob can never expose an
+ * edge inside the card's overflow.
+ */
+.float {
+  position: absolute;
+  inset: -14px -9px;
+  display: block;
+  animation-name: drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(3px, -11px, 0);
+  }
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* just enough to hold the centred type off the pictures */
+  background: rgba(18, 18, 20, 0.28);
+  transition: opacity 0.5s var(--ease);
+}
+
+/* the quote keeps its own layer, always above the field */
+.quote {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* the measure lives here, not on the wrapper: `ch` resolves against the
+   element's own font-size, and the wrapper inherits the 16px body size */
+.line {
+  max-width: 17ch;
+  margin-inline: auto;
+  font-size: clamp(28px, 5vw, 76px);
+  font-weight: 500;
+  line-height: 1.03;
+  letter-spacing: -0.038em;
+  text-wrap: balance;
+}
+.line i {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.mark {
+  position: absolute;
+  left: var(--pad);
+  bottom: clamp(24px, 5vh, 56px);
+  z-index: 3;
+}
+
+/*
+ * Unpinned — narrow viewports and reduced motion. No flight, no 3D: the cards
+ * simply sit under the quote in a row. Nothing writes a transform to them in
+ * these cases, because the timeline is never created.
+ */
+/* ── lightbox ───────────────────────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 56px);
+  background: rgba(10, 10, 12, 0.9);
+  backdrop-filter: blur(14px);
+  animation: fade 0.35s var(--ease) both;
+  cursor: zoom-out;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: var(--ar);
+  /* whichever of the three binds first decides the size; the last term is what
+     keeps a tall picture inside the viewport height */
+  width: min(96vw, 1500px, calc(88svh * var(--ar)));
+  cursor: default;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+  animation: rise 0.45s var(--ease) both;
+}
+
+.modalImg {
+  object-fit: contain;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+.close {
+  position: absolute;
+  top: clamp(14px, 3vh, 30px);
+  right: clamp(14px, 3vw, 34px);
+  background: none;
+  border: 1px solid var(--faint);
+  border-radius: 999px;
+  padding: 9px 18px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.35s var(--ease), color 0.35s var(--ease);
+}
+.close:hover {
+  background: var(--ink);
+  color: #141416;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float {
+    animation: none;
+  }
+  .modal,
+  .modalImg {
+    animation: none;
+  }
+}
+
+@media (max-width: 900px), (prefers-reduced-motion: reduce) {
+  .stage {
+    min-height: 0;
+    display: block;
+    text-align: center;
+  }
+  .line {
+    max-width: 18ch;
+  }
+  .field {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: clamp(32px, 6vh, 60px);
+    perspective: none;
+    pointer-events: auto;
+  }
+  /* the orientation widths carry more specificity, so they are reset here too;
+     all seven show, each still at its own ratio and still openable */
+  .card,
+  .card[data-orient="land"],
+  .card[data-orient="port"] {
+    position: static;
+    width: auto;
+    box-shadow: none;
+  }
+  .float {
+    position: static;
+    inset: auto;
+    animation: none;
+  }
+  .mark {
+    position: static;
+    margin-top: 26px;
+  }
+}

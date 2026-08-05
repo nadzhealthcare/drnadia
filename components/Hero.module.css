@@ -1,0 +1,275 @@
+.hero {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  /* conservative defaults until the ResizeObserver reports the real crop */
+  --face-top: 34svh;
+  --face-bottom: 34svh;
+  --gap: clamp(10px, 1.2vh, 16px);
+  --top-inset: clamp(44px, 5vh, 64px);
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* the type sits over the light side of the plate, so the bands need real
+     coverage — but both gradients reach zero exactly at the face band */
+  background: linear-gradient(
+    180deg,
+    rgba(12, 12, 14, 0.92) 0,
+    rgba(12, 12, 14, 0.6) calc(var(--face-top) * 0.45),
+    rgba(12, 12, 14, 0) var(--face-top),
+    rgba(12, 12, 14, 0) calc(100% - var(--face-bottom)),
+    rgba(12, 12, 14, 0.3) calc(100% - var(--face-bottom) * 0.55),
+    rgba(12, 12, 14, 0.94) 100%
+  );
+}
+
+/* ── the two type bands ─────────────────────────────────── */
+.top,
+.bottom {
+  position: absolute;
+  left: var(--pad);
+  right: var(--pad);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.top {
+  top: var(--top-inset);
+  /* stop short of the top of her head */
+  bottom: calc(100% - var(--face-top) + var(--gap));
+  justify-content: space-between;
+  /* belt and braces: on a very short window the band collapses rather than
+     letting type cross into the face */
+  overflow: hidden;
+}
+
+.bottom {
+  /* start below her chin */
+  top: calc(100% - var(--face-bottom) + var(--gap));
+  bottom: 14px;
+  justify-content: flex-end;
+  gap: 14px;
+  /* content is bottom-aligned, so any overflow spills upward and is cut at
+     the chin line rather than crossing it */
+  overflow: hidden;
+}
+
+/* short landscape windows: a band too shallow for the minimum size drops the
+   headline entirely rather than showing a clipped sliver */
+.hero[data-tight="1"] .headline {
+  display: none;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--faint);
+  padding-bottom: 10px;
+  flex: 0 0 auto;
+}
+
+/*
+ * --fit is measured in Hero.tsx: the smaller of what the band's width allows
+ * (so the line runs edge to edge) and what its height allows (so it can never
+ * grow into her face). The clamp is only a floor and a ceiling.
+ */
+.headline {
+  line-height: 0.84;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  flex: 0 0 auto;
+  /* descender allowance, set per slide — 0 for a headline that has none */
+  padding-bottom: var(--desc, 0em);
+  font-size: clamp(28px, var(--fit, 96px), 300px);
+}
+
+.joiner {
+  display: inline-block;
+  white-space: pre;
+}
+/* stacked, the runs are blocks — leaving the joiner in would sit it on a line
+   of its own and cost the headline a third of its height */
+.hero[data-lines="2"] .joiner {
+  display: none;
+}
+
+/* one line when there's width for it, stacked when there isn't */
+.headline :global(.blurText) {
+  display: inline;
+  white-space: nowrap;
+}
+.hero[data-lines="2"] .headline :global(.blurText) {
+  display: block;
+}
+
+.serifRun {
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  opacity: 0.85;
+  transition: opacity 0.35s var(--ease), gap 0.35s var(--ease);
+}
+.jump:hover {
+  opacity: 1;
+  gap: 14px;
+}
+.jump em {
+  font-style: normal;
+  font-family: var(--sans);
+}
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid var(--faint);
+  padding-top: 8px;
+  flex: 0 0 auto;
+}
+
+/* ── slide controls ─────────────────────────────────────── */
+.slides {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.dot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  cursor: pointer;
+  color: var(--dim);
+  transition: color 0.4s var(--ease);
+}
+.dot[data-active="1"],
+.dot:hover {
+  color: var(--ink);
+}
+
+.dotNum {
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dotBar {
+  display: block;
+  width: 34px;
+  height: 1px;
+  background: var(--faint);
+  overflow: hidden;
+  transition: width 0.5s var(--ease);
+}
+.dot[data-active="1"] .dotBar {
+  width: 58px;
+}
+
+.dotFill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: currentColor;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+/* only the live slide's bar counts down */
+.dot[data-active="1"] .dotFill[data-run="1"] {
+  animation-name: fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.dot[data-active="1"] .dotFill[data-run="0"] {
+  transform: scaleX(0.06);
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.scrollCue {
+  position: relative;
+  padding-right: 20px;
+}
+.scrollCue::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 14px;
+  height: 1px;
+  background: var(--dim);
+  transform-origin: right;
+  animation: cue 2.2s var(--ease) infinite;
+}
+
+@keyframes cue {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  40% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1) translateX(10px);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .jump span {
+    display: none;
+  }
+  .scrollCue {
+    display: none;
+  }
+  .slides {
+    gap: 12px;
+  }
+  .dotBar {
+    width: 22px;
+  }
+  .dot[data-active="1"] .dotBar {
+    width: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollCue::after {
+    animation: none;
+  }
+}

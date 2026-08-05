@@ -1,0 +1,245 @@
+/* ============================================================
+   Dr. Nadia Choudhry — design system
+   ============================================================ */
+
+:root {
+  /* the scroll-driven backdrop writes to these two */
+  --bg: #141416;
+  --bg-tint: rgba(196, 150, 116, 0);
+
+  --ink: #f4f2f0;
+  --dim: #9c9a97;
+  --faint: rgba(244, 242, 240, 0.14);
+  --warm: #c49674;
+  --cool: #6f9db8;
+
+  --sans: var(--font-sans), "Inter Tight", Helvetica, Arial, sans-serif;
+  --serif: var(--font-serif), "Playfair Display", Georgia, serif;
+
+  --pad: clamp(16px, 3.4vw, 52px);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  /* Lenis drives the scroll — never let the browser also smooth it */
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* film grain over everything */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.11;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: var(--ink);
+  color: #141416;
+}
+
+i,
+em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* the animated backdrop that swaps colour per section */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  background: var(--bg);
+  transition: background-color 0.1s linear;
+}
+.backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 80% at 50% var(--tint-y, 20%),
+    var(--bg-tint),
+    transparent 68%
+  );
+  transition: background 0.1s linear;
+}
+
+/* ── type utilities ─────────────────────────────────────── */
+.micro {
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--dim);
+  line-height: 1.6;
+}
+.tiny {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--dim);
+  font-weight: 300;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── blur-in text ───────────────────────────────────────── */
+.blurText {
+  display: block;
+}
+.blurText .w {
+  display: inline-block;
+  white-space: pre;
+  will-change: filter, transform, opacity;
+}
+.blurText[data-ready="0"] .w {
+  opacity: 0;
+  filter: blur(18px);
+}
+
+/* generic reveal */
+.rv {
+  opacity: 0;
+  transform: translateY(22px);
+}
+.rv.in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 1s var(--ease),
+    transform 1s var(--ease);
+}
+
+/* ── custom cursor ──────────────────────────────────────── */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 95;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+.cursorDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.4s var(--ease),
+    height 0.4s var(--ease),
+    opacity 0.3s;
+}
+.cursorRing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  transition:
+    width 0.5s var(--ease),
+    height 0.5s var(--ease),
+    opacity 0.4s,
+    border-color 0.4s;
+}
+.cursor[data-state="link"] .cursorRing {
+  width: 62px;
+  height: 62px;
+}
+.cursor[data-state="link"] .cursorDot {
+  width: 0;
+  height: 0;
+}
+.cursor[data-state="media"] .cursorRing {
+  width: 96px;
+  height: 96px;
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.cursor[data-state="media"] .cursorDot {
+  width: 0;
+  height: 0;
+}
+.cursorLabel {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.cursor[data-state="media"] .cursorLabel {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor {
+    display: none;
+  }
+}
+
+/* ── shared layout ──────────────────────────────────────── */
+.sect {
+  padding: clamp(72px, 12vh, 150px) var(--pad);
+  position: relative;
+}
+.hSec {
+  font-size: clamp(30px, 5vw, 68px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  margin-bottom: clamp(28px, 5vh, 52px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv,
+  .blurText .w {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

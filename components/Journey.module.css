@@ -1,0 +1,216 @@
+.stage {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 46%);
+  align-items: center;
+  gap: clamp(24px, 4vw, 72px);
+  padding: clamp(56px, 10vh, 110px) var(--pad);
+  overflow: hidden;
+}
+
+/* ── the dial ───────────────────────────────────────────── */
+/*
+ * Everything here is a zero-size point, so the transforms compose cleanly:
+ * .dial is the circle's centre, .wheel turns the whole ring, and each .spoke
+ * rotates to its own angle and hangs its word out at the radius. A word
+ * therefore inherits its spoke's rotation and sits tangent to the arc — and
+ * the one at 0deg is upright, level with the marker.
+ */
+.dial {
+  --r: clamp(460px, 55vw, 940px);
+  position: absolute;
+  /* centre sits off to the left, so only the right edge of the ring shows */
+  left: calc(24vw - var(--r));
+  top: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.wheel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+.spoke {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: rotate(calc(var(--i) * var(--step)));
+}
+
+.spoke span {
+  position: absolute;
+  left: var(--r);
+  top: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: clamp(15px, 1.5vw, 21px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--dim);
+  opacity: 0.42;
+  transition:
+    opacity 0.6s var(--ease),
+    color 0.6s var(--ease),
+    font-size 0.6s var(--ease);
+}
+
+.spoke[data-active="1"] span {
+  opacity: 1;
+  color: var(--ink);
+  font-size: clamp(22px, 2.6vw, 40px);
+}
+
+/* the line the live word aligns to */
+.marker {
+  position: absolute;
+  left: calc(var(--r) - 74px);
+  top: 0;
+  width: 52px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(244, 242, 240, 0.5));
+}
+
+/* ── the copy ───────────────────────────────────────────── */
+.panel {
+  grid-column: 2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 3vh, 32px);
+}
+
+.kicker {
+  flex: 0 0 auto;
+}
+
+/* the chapters are stacked so swapping one for the next costs no reflow */
+.chapters {
+  position: relative;
+  min-height: clamp(300px, 46svh, 420px);
+}
+
+.chapter {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  filter: blur(16px);
+  transform: translateY(28px) scale(0.98);
+  pointer-events: none;
+  transition:
+    opacity 0.7s var(--ease),
+    filter 0.7s var(--ease),
+    transform 0.7s var(--ease);
+}
+
+.chapter[data-active="1"] {
+  opacity: 1;
+  filter: blur(0px);
+  transform: none;
+  pointer-events: auto;
+}
+
+.num {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.num b {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.num span {
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.title {
+  font-size: clamp(24px, 3.2vw, 46px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
+  margin-bottom: 16px;
+  text-wrap: balance;
+}
+.title i {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.chapter p {
+  max-width: 46ch;
+}
+
+/* ── progress ───────────────────────────────────────────── */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 22px);
+  flex: 0 0 auto;
+}
+.progress p {
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+.bar {
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--faint);
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/*
+ * Unpinned — narrow viewports and reduced motion. The dial is meaningless at
+ * this size, so the chapters simply read as a numbered list. No transform is
+ * ever written to the wheel in these cases, since the pin is never created.
+ */
+@media (max-width: 900px), (prefers-reduced-motion: reduce) {
+  .stage {
+    min-height: 0;
+    display: block;
+  }
+  .dial {
+    display: none;
+  }
+  .panel {
+    gap: 22px;
+  }
+  .chapters {
+    position: static;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(40px, 7vh, 72px);
+  }
+  .chapter {
+    position: static;
+    opacity: 1;
+    filter: none;
+    transform: none;
+    pointer-events: auto;
+  }
+  .progress {
+    display: none;
+  }
+}
