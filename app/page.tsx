@@ -1,3 +1,4 @@
+import Preloader from "@/components/Preloader";
 import SmoothScroll from "@/components/SmoothScroll";
 import ScrollBackground from "@/components/ScrollBackground";
 import Cursor from "@/components/Cursor";
@@ -17,6 +18,7 @@ export default function Page() {
   return (
     <>
       <SmoothScroll />
+      <Preloader />
       <ScrollBackground />
       <Cursor />
       <Nav />

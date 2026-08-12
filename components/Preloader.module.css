@@ -1,0 +1,79 @@
+.root {
+  position: fixed;
+  inset: 0;
+  /* above the dock (120) and the lightbox (200) — nothing precedes this */
+  z-index: 300;
+  background: #0e0f10;
+  display: grid;
+  place-items: center;
+  /* the exit wipes this open upward */
+  clip-path: inset(0% 0% 0% 0%);
+}
+
+/*
+ * The deck is a fixed frame; every card fills it, so they land squarely on top
+ * of one another whatever their own proportions are.
+ */
+.deck {
+  position: relative;
+  width: clamp(150px, 20vw, 230px);
+  aspect-ratio: 3 / 4;
+  will-change: transform, opacity;
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* hidden until dealt: GSAP's from-state is only applied on its first tick,
+     and until then the whole deck would sit there at full opacity */
+  opacity: 0;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+}
+
+.meta {
+  position: absolute;
+  left: var(--pad);
+  right: var(--pad);
+  bottom: clamp(18px, 4vh, 40px);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.name,
+.count {
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.count::after {
+  content: "%";
+  opacity: 0.5;
+}
+
+/*
+ * Nothing here can be dismissed without JavaScript, so a visitor without it
+ * would be staring at a dark rectangle. `scripting: none` hides it outright.
+ */
+@media (scripting: none) {
+  .root {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* nothing deals them here, so they simply show */
+  .card {
+    opacity: 1;
+  }
+}
