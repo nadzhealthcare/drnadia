@@ -20,8 +20,9 @@ export default function BackgroundMusic() {
    */
   const ready = (el: HTMLAudioElement) => {
     if (!el.getAttribute("src")) {
+      // setting src is enough to begin loading; an explicit load() here would
+      // reset readyState to 0 and can get the play() that follows refused
       el.setAttribute("src", SRC);
-      el.load();
     }
     el.volume = VOLUME;
     return el;
@@ -41,17 +42,24 @@ export default function BackgroundMusic() {
      * has interacted with the page. So the first gesture anywhere is what
      * starts it, which is the earliest a browser will allow.
      */
+    /*
+     * Only stop listening once it actually plays. Detaching on the first
+     * attempt regardless meant a single refusal — a tap while the loader is up,
+     * a policy that wants a firmer gesture — killed it for the whole visit.
+     */
     const start = () => {
       const el = ref.current;
       if (!el) return;
       ready(el);
       el.play().then(
-        () => setOn(true),
         () => {
-          // still refused; the toggle stays available
+          setOn(true);
+          off();
+        },
+        () => {
+          // refused; leave the listeners in place and try the next gesture
         },
       );
-      off();
     };
     const off = () => {
       window.removeEventListener("pointerdown", start);

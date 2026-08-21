@@ -18,6 +18,7 @@ type Row = { k: string; v: string; bad?: boolean };
 
 export default function Diag() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [audioNote, setAudioNote] = useState("tap the button below");
   const push = (k: string, v: string, bad = false) =>
     setRows((r) => [...r.filter((x) => x.k !== k), { k, v, bad }]);
 
@@ -67,6 +68,13 @@ export default function Diag() {
       push("fonts", `ready, ${document.fonts.size} faces`),
     );
 
+    // what the site remembers about the sound choice
+    try {
+      push("sound setting", localStorage.getItem("nadz:sound") ?? "(none yet)");
+    } catch {
+      push("sound setting", "localStorage blocked", true);
+    }
+
     // video
     const v = document.createElement("video");
     v.muted = true;
@@ -110,6 +118,32 @@ export default function Diag() {
           ))}
         </tbody>
       </table>
+      <button
+        type="button"
+        onClick={() => {
+          const a = new Audio("/assets/ambient.mp3");
+          a.volume = 0.5;
+          a.play().then(
+            () => {
+              setAudioNote("PLAYING at 50%. If you hear nothing, check the phone's silent switch and the volume.");
+              window.setTimeout(() => {
+                setAudioNote(
+                  `playing=${!a.paused} t=${a.currentTime.toFixed(1)}s vol=${a.volume} — if this says playing and you hear nothing, it is the device, not the site`,
+                );
+              }, 2500);
+            },
+            (e) => setAudioNote(`REFUSED: ${e?.name ?? e}`),
+          );
+        }}
+        style={{
+          marginTop: 22, padding: "12px 18px", font: "inherit",
+          background: "#f4f2f0", color: "#0e0f10", border: 0, borderRadius: 6,
+        }}
+      >
+        ▶ test sound at 50%
+      </button>
+      <p style={{ marginTop: 10, color: "#9ad" }}>{audioNote}</p>
+
       <p style={{ opacity: 0.5, marginTop: 18 }}>
         Screenshot this and send it back. Red lines are the problem.
       </p>
