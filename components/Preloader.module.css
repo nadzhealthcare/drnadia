@@ -30,7 +30,6 @@
   /* hidden until dealt: GSAP's from-state is only applied on its first tick,
      and until then the whole deck would sit there at full opacity */
   opacity: 0;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
 }
 
 .meta {
