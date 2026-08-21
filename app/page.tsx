@@ -2,6 +2,7 @@ import Preloader from "@/components/Preloader";
 import SmoothScroll from "@/components/SmoothScroll";
 import ScrollBackground from "@/components/ScrollBackground";
 import Cursor from "@/components/Cursor";
+import BackgroundMusic from "@/components/BackgroundMusic";
 import SocialDock from "@/components/SocialDock";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
@@ -22,6 +23,7 @@ export default function Page() {
       <ScrollBackground />
       <Cursor />
       <Nav />
+      <BackgroundMusic />
       <SocialDock />
 
       <main id="top">

@@ -8,6 +8,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* the collapsed row still occupies its box, and was intercepting clicks
+     aimed at whatever sits beside the dock — only the controls take input */
+  pointer-events: none;
 }
 
 .links {
@@ -90,6 +93,7 @@
 
 /* the toggle carries the same envelope, and turns as the dock opens */
 .toggle {
+  pointer-events: auto;
   width: 52px;
   height: 52px;
   border-color: rgba(244, 242, 240, 0.28);
