@@ -33,21 +33,38 @@ export default function LoopVideo({ src, poster, className, label }: Props) {
       return;
     }
 
+    let visible = false;
+
+    /*
+     * Autoplay can still be refused even with muted + playsInline — iOS Low
+     * Power Mode is the common case, and there the poster would simply sit
+     * there forever. Falling back to the first interaction anywhere on the
+     * page gets it running without asking the reader to do anything special.
+     */
+    const attempt = () => {
+      if (!visible) return;
+      el.play().catch(() => {});
+    };
+
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          // a rejected promise here is normal (tab hidden, low power mode);
-          // the poster stays up and nothing else breaks
-          el.play().catch(() => {});
-        } else {
-          el.pause();
-        }
+        visible = entry.isIntersecting;
+        if (visible) attempt();
+        else el.pause();
       },
       { threshold: 0.05 },
     );
     io.observe(el);
 
-    return () => io.disconnect();
+    const opts = { passive: true } as const;
+    window.addEventListener("touchstart", attempt, opts);
+    window.addEventListener("pointerdown", attempt, opts);
+
+    return () => {
+      io.disconnect();
+      window.removeEventListener("touchstart", attempt);
+      window.removeEventListener("pointerdown", attempt);
+    };
   }, []);
 
   return (

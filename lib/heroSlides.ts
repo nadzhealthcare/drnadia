@@ -81,8 +81,8 @@ export const SLIDES: Slide[] = [
     anchorX: 0.5,
     topShare: 0.5,
     eyebrow: "Longevity · Personalized care",
-    lineA: "Measured in",
-    lineB: "*decades*",
+    lineA: "Beyond the",
+    lineB: "*diagnosis*",
   },
 ];
 
