@@ -8,27 +8,27 @@ import s from "./sections.module.css";
 const ROWS = [
   {
     h: "Assessment and Baseline",
-    p: "Nothing is prescribed before the whole picture is drawn — history, lifestyle, inherited risk and current markers, mapped against where the patient intends to be in twenty years.",
-    ph: "Pre — illness",
+    p: "Nothing is prescribed before the whole picture is drawn - history, lifestyle, inherited risk and current markers, mapped against where the patient intends to be in twenty years.",
+    ph: "Pre - illness",
     list: [
       "Health history",
       "Risk profiling",
       "Screening and labs",
       "Lifestyle audit",
       "Baseline markers",
-      "Goals — the plan",
+      "Goals - the plan",
     ],
   },
   {
     h: "Prevention and Continuity",
     p: "The plan is carried out where the patient actually lives. Follow-up runs continuously rather than in appointments, which is how small drifts get caught while they are still small.",
-    ph: "Care — delivery",
+    ph: "Care - delivery",
     list: ["Home healthcare", "Ongoing monitoring", "Nutrition and movement"],
   },
   {
     h: "Longevity and Balance",
-    p: "The measure she works to is not years but capacity — the energy, clarity and balance carried through them, reassessed and adjusted as the decades move.",
-    ph: "Long — term",
+    p: "The measure she works to is not years but capacity - the energy, clarity and balance carried through them, reassessed and adjusted as the decades move.",
+    ph: "Long - term",
     list: ["Healthspan tracking", "Energy and recovery", "Periodic reassessment"],
   },
 ];

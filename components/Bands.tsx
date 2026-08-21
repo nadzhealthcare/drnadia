@@ -24,7 +24,7 @@ export default function Bands() {
               <LoopVideo
                 src="/assets/reel.mp4"
                 poster="/assets/reel-poster.jpg"
-                label="Dr. Nadia Choudhry at work — clinic visits, home care and consultations"
+                label="Dr. Nadia Choudhry at work - clinic visits, home care and consultations"
               />
             </Parallax>
             <figcaption className="micro">NADZ Healthcare</figcaption>
@@ -77,7 +77,7 @@ export default function Bands() {
             />
             <p className="tiny">
               Modern medicine treats illness well. Her interest lies in the gap
-              that opens before it — the years before symptoms surface, before
+              that opens before it, the years before symptoms surface, before
               conditions establish themselves, before intervention becomes the
               only option left.
             </p>

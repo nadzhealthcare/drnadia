@@ -34,7 +34,7 @@ export default function Statement() {
         <p className="tiny">
           Six specialties, six vantage points on the same body. What they
           produced was a conviction that health is not a set of isolated
-          systems, but something interconnected — and deeply personal.
+          systems, but something interconnected, and deeply personal.
         </p>
       </Reveal>
     </section>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import s from "./SocialDock.module.css";
 
-const EMAIL = "drnadia@nadzhealthcare.com";
+const EMAIL = "md@nadzhealthcare.com";
 
 const LINKS = [
   {

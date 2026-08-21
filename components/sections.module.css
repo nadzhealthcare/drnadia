@@ -470,13 +470,25 @@
   font-size: 10px;
   color: var(--dim);
 }
+.credit {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--faint);
+  transition: border-color 0.35s var(--ease);
+}
+.credit:hover {
+  border-color: var(--ink);
+}
+
 .footer {
   margin-top: clamp(64px, 11vh, 130px);
   border-top: 1px solid var(--faint);
-  padding: 16px 0 26px;
+  /* the floating dock sits bottom-right over the end of the page, so the last
+     row keeps clear of its footprint rather than running underneath it */
+  padding: 16px 0 clamp(76px, 12vh, 104px);
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 16px 24px;
   flex-wrap: wrap;
 }
 .fb {

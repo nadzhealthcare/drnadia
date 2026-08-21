@@ -19,11 +19,11 @@ const serif = Playfair_Display({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nadzhealthcare.com"),
-  title: "Dr. Nadia Choudhry — Physician, Founder",
+  title: "Dr. Nadia Choudhry - Physician, Founder",
   description:
     "Physician and founder of NADZ Healthcare. Preventive medicine, longevity and personalized care, delivered continuously rather than in appointments.",
   openGraph: {
-    title: "Dr. Nadia Choudhry — Physician, Founder",
+    title: "Dr. Nadia Choudhry - Physician, Founder",
     description:
       "Preventive medicine, longevity and personalized care across Abu Dhabi and Dubai.",
     images: ["/assets/hero_nadia2.webp"],

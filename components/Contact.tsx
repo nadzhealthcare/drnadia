@@ -1,11 +1,12 @@
 "use client";
 
 import BlurText from "./BlurText";
+import ContactForm from "./ContactForm";
 import Reveal from "./Reveal";
 import s from "./sections.module.css";
 
 const LINKS = [
-  { href: "mailto:drnadia@nadzhealthcare.com", label: "drnadia@nadzhealthcare.com", tag: "Email" },
+  { href: "mailto:md@nadzhealthcare.com", label: "md@nadzhealthcare.com", tag: "Email" },
   { href: "https://www.instagram.com/drnadiachoudhry", label: "Instagram", tag: "@drnadiachoudhry" },
   { href: "https://www.linkedin.com/in/drnadiachoudhry", label: "LinkedIn", tag: "Profile" },
   { href: "https://www.youtube.com/@thedrnadz", label: "YouTube", tag: "The Dr Nadz Show" },
@@ -38,9 +39,11 @@ export default function Contact() {
         <Reveal>
           <p className={s.l}>
             Based between Abu Dhabi and Dubai, she takes on{" "}
-            <i>patients, partners and platforms</i> across the UAE and beyond —
+            <i>patients, partners and platforms</i> across the UAE and beyond,
             in practice, in media, <i>and in the case for prevention.</i>
           </p>
+
+          <ContactForm />
         </Reveal>
 
         <Reveal className={s.links2} stagger={0.06}>
@@ -69,7 +72,19 @@ export default function Contact() {
           </p>
         </div>
         <p className="micro">Physician · Founder · Podcaster</p>
-        <p className="micro">Abu Dhabi — Dubai</p>
+        <p className="micro">Abu Dhabi - Dubai</p>
+        <p className="micro">
+          Developed by{" "}
+          <a
+            className={s.credit}
+            href="https://thedarwin.co/"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cursor="link"
+          >
+            Darwin Corp
+          </a>
+        </p>
       </footer>
     </section>
   );

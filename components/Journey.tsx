@@ -21,7 +21,7 @@ const CHAPTERS: Chapter[] = [
   },
   {
     key: "The Question",
-    title: "What if healthcare wasn't built around hospitals — *but around people?*",
+    title: "What if healthcare wasn't built around hospitals, *but around people?*",
     body: "That question became the foundation of a new way of thinking. One where relationships matter more than transactions, prevention matters more than treatment, and care continues beyond a single visit.",
   },
   {
@@ -32,7 +32,7 @@ const CHAPTERS: Chapter[] = [
   {
     key: "The Ecosystem",
     title: "Not a clinic. *A healthcare ecosystem.*",
-    body: "Services, doctors, technology, home healthcare, longevity and concierge medicine — brought together as one practice rather than a set of separate appointments.",
+    body: "Services, doctors, technology, home healthcare, longevity and concierge medicine, brought together as one practice rather than a set of separate appointments.",
   },
   {
     key: "The Future",

@@ -233,14 +233,14 @@ export default function Hero() {
       {/* the slide lines change as the sequence runs, so the document keeps a
           stable heading of its own rather than borrowing whichever is on screen */}
       <h1 className="srOnly">
-        Dr. Nadia Choudhry — physician and founder of NADZ Healthcare
+        Dr. Nadia Choudhry - physician and founder of NADZ Healthcare
       </h1>
 
       {/* ── everything above her face ── */}
       <div className={styles.top}>
         <div className={styles.meta}>
           <p className="micro">{slide.eyebrow}</p>
-          <p className="micro">Abu&nbsp;Dhabi — Dubai</p>
+          <p className="micro">Abu&nbsp;Dhabi - Dubai</p>
         </div>
       </div>
 

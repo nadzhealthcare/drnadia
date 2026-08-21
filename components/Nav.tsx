@@ -3,9 +3,12 @@
 import { useEffect, useRef } from "react";
 import styles from "./Nav.module.css";
 
+/** every anchor here is a section that exists, listed in page order */
 const LINKS = [
   { href: "#story", label: "Story" },
+  { href: "#journey", label: "Journey" },
   { href: "#recognition", label: "Recognition" },
+  { href: "#events", label: "Events" },
   { href: "#approach", label: "Approach" },
   { href: "#contact", label: "Contact" },
 ];

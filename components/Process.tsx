@@ -8,7 +8,7 @@ const STEPS = [
   {
     n: "01",
     name: "Prevention",
-    body: "Risk is read before it becomes diagnosis — history, inherited pattern, markers and lifestyle mapped against where the patient intends to be in twenty years.",
+    body: "Risk is read before it becomes diagnosis - history, inherited pattern, markers and lifestyle mapped against where the patient intends to be in twenty years.",
   },
   {
     n: "02",

@@ -21,7 +21,7 @@ const AWARDS = [
   {
     yr: "2025",
     title: "NADZ Healthcare founded",
-    body: "1st January — established to deliver continuous, proactive care in the home",
+    body: "1st January, established to deliver continuous, proactive care in the home",
     mark: "Practice",
     img: "/assets/drnadia7.webp",
     pos: "50% 30%",
@@ -64,7 +64,7 @@ export default function Recognition() {
             <div className={s.row} key={a.title}>
               <p className={s.yr}>{a.yr}</p>
               <p className={s.txt}>
-                <b>{a.title}</b> — {a.body}
+                <b>{a.title}</b> - {a.body}
               </p>
               <p className={s.rowMark}>{a.mark}</p>
 
