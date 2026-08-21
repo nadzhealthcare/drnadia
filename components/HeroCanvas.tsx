@@ -231,7 +231,7 @@ export default function HeroCanvas({ index }: { index: number }) {
   }, [index]);
 
   /**
-   * No WebGL (or reduced motion): lay the plain <img> out with the exact
+   * No WebGL at all: lay the plain <img> out with the exact
    * geometry frameSlide() describes, so the face lands in the same band the
    * layout has reserved for it.
    */
@@ -256,12 +256,17 @@ export default function HeroCanvas({ index }: { index: number }) {
   }, [fallback, index]);
 
   useEffect(() => {
+    /*
+     * Reduced motion keeps the picture and stops the movement, rather than
+     * dropping to a still. What the preference is about here is the drifting
+     * spotlight and the settle-from-defocus, not the photograph itself.
+     */
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
-    if (reduced || !canvas || !wrap) {
+    if (!canvas || !wrap) {
       setFallback(true);
       return;
     }
@@ -552,7 +557,12 @@ export default function HeroCanvas({ index }: { index: number }) {
       const lit = (progress < 1 ? SLIDES[to] : SLIDES[from]).colour ? 1 : 0;
       const steering = ptr.over && now - ptr.moved < IDLE_MS;
 
-      if (lit && steering) {
+      if (reduced) {
+        // parked on her face: the reveal still reads, nothing travels
+        pointer.x = focus.x;
+        pointer.y = focus.y;
+        hoverTarget = lit ? 0.75 : 0;
+      } else if (lit && steering) {
         // hovering: the spotlight is the pointer, and opens to full size
         pointer.x = ptr.x;
         pointer.y = ptr.y;
@@ -583,13 +593,13 @@ export default function HeroCanvas({ index }: { index: number }) {
       // only a paired slide can open, and it eases rather than snapping
       const openTarget = lit && openRef.current ? 1 : 0;
       open += (openTarget - open) * Math.min(dt * 3.4, 1);
-      intro = Math.min(1, intro + dt * 0.55);
+      intro = reduced ? 1 : Math.min(1, intro + dt * 0.55);
 
       gl.uniform2f(u.mouse, cur.x, cur.y);
       gl.uniform1f(u.hover, hover);
       gl.uniform1f(u.open, open);
       gl.uniform1f(u.vel, vel);
-      gl.uniform1f(u.time, t);
+      gl.uniform1f(u.time, reduced ? 0 : t);
       gl.uniform1f(u.intro, intro);
       // no vertical crop to spare means no room to parallax into
       gl.uniform1f(u.scroll, scroll * Math.min(slack, 1));

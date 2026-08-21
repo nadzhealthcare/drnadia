@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { prefersReducedMotion } from "@/lib/gsap";
 
 type Props = {
   src: string;
@@ -26,12 +25,6 @@ export default function LoopVideo({ src, poster, className, label }: Props) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    if (prefersReducedMotion()) {
-      el.removeAttribute("autoplay");
-      el.pause();
-      return;
-    }
 
     let visible = false;
 

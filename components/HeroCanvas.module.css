@@ -26,9 +26,12 @@
   transition: opacity 0.9s ease;
 }
 
-/* geometry is written from frameHero() — no object-fit involved */
+/* geometry is written from frameSlide() — no object-fit involved */
 .fallback {
   inset: auto;
+  /* the plate is deliberately wider than its frame, so the global
+     `img { max-width: 100% }` has to be lifted or the crop is squashed flat */
+  max-width: none;
   object-fit: fill;
   opacity: 1;
   filter: saturate(0.9) contrast(1.02);
