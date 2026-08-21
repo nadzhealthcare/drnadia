@@ -36,15 +36,12 @@ const WIDTH_SAFETY = 0.994;
 /**
  * Size the headline by measuring it rather than predicting it.
  *
- * Two earlier approximations both proved wrong by enough to matter: a
- * per-character advance width (which left the line 5-8% short of the edge) and
- * an em-height derived from `line-height` (which missed the extra a line box
- * gains from inline-block glyph spans, and wrongly reported the band as too
- * shallow). Setting a probe size and reading the result removes both.
- *
- * Widths come from summing the glyph spans' `offsetWidth`, and the height from
- * `offsetHeight`, because both are layout values — the blur-in animation
- * transforms these spans, and transforms would corrupt any rect-based read.
+ * The measurement runs on a hidden clone, not the live element, for two
+ * reasons. `offsetWidth` is a rounded integer, and summing twenty of them
+ * under-reports the real width by enough to overrun the band — and the guard
+ * meant to catch that used the same rounded figure, so it never fired. The
+ * live spans also carry the blur-in's transforms, which corrupt any fractional
+ * rect read. A clone with those styles stripped has neither problem.
  */
 const fitHeadline = (
   head: HTMLElement,
@@ -53,52 +50,65 @@ const fitHeadline = (
   lines: number,
   capPx: number,
 ) => {
-  const prevSize = head.style.fontSize;
-  const prevWrap = head.style.whiteSpace;
-  head.style.fontSize = `${PROBE_PX}px`;
-  head.style.whiteSpace = "nowrap";
-
   const runs = [...head.querySelectorAll<HTMLElement>(".blurText")];
-  const runWidth = (r: HTMLElement) =>
-    [...r.querySelectorAll<HTMLElement>(".w")].reduce(
-      (sum, w) => sum + w.offsetWidth,
-      0,
-    );
-  const joiner = head.querySelector<HTMLElement>("[data-joiner]");
+  if (!runs.length) return null;
 
+  const ghost = document.createElement("div");
+  ghost.setAttribute("aria-hidden", "true");
+  ghost.style.cssText =
+    "position:absolute;left:-99999px;top:0;visibility:hidden;" +
+    `pointer-events:none;white-space:nowrap;font-size:${PROBE_PX}px`;
+  head.appendChild(ghost);
+
+  const strip = (el: HTMLElement) => {
+    el.style.transform = "";
+    el.style.filter = "";
+    el.style.opacity = "";
+    el.style.display = "inline-block";
+    el.style.whiteSpace = "nowrap";
+    el.querySelectorAll<HTMLElement>(".w").forEach((w) => {
+      w.style.transform = "";
+      w.style.filter = "";
+      w.style.opacity = "";
+    });
+    return el;
+  };
+
+  const clones = runs.map((r) => {
+    const c = strip(r.cloneNode(true) as HTMLElement);
+    ghost.appendChild(c);
+    return c;
+  });
+
+  let joinW = 0;
+  const joiner = head.querySelector<HTMLElement>("[data-joiner]");
+  if (joiner) {
+    const jc = joiner.cloneNode(true) as HTMLElement;
+    jc.style.display = "inline-block";
+    ghost.appendChild(jc);
+    joinW = jc.getBoundingClientRect().width;
+  }
+
+  // fractional, and free of the animation's transforms
+  const widths = clones.map((c) => c.getBoundingClientRect().width);
   const widthEm =
     (lines === 1
-      ? runs.reduce((sum, r) => sum + runWidth(r), 0) +
-        (joiner?.offsetWidth ?? 0)
-      : Math.max(...runs.map(runWidth))) / PROBE_PX;
-  const heightEm = head.offsetHeight / PROBE_PX;
+      ? widths.reduce((a, b) => a + b, 0) + joinW
+      : Math.max(...widths)) / PROBE_PX;
 
-  head.style.fontSize = prevSize;
-  head.style.whiteSpace = prevWrap;
+  ghost.remove();
+
+  const prev = head.style.fontSize;
+  head.style.fontSize = `${PROBE_PX}px`;
+  const heightEm = head.offsetHeight / PROBE_PX;
+  head.style.fontSize = prev;
 
   if (!widthEm || !heightEm) return null;
   return {
     size: Math.min(bandH / heightEm, (bandW * WIDTH_SAFETY) / widthEm, capPx),
+    widthEm,
     heightEm,
   };
-};
-
-/**
- * Width of the widest line as laid out right now. Sums the glyph spans'
- * `offsetWidth` for the same reason the fit does: the blur-in transforms them,
- * and a rect-based read would report the animation rather than the layout.
- */
-const renderedWidth = (head: HTMLElement, lines: number) => {
-  const runs = [...head.querySelectorAll<HTMLElement>(".blurText")];
-  const runWidth = (r: HTMLElement) =>
-    [...r.querySelectorAll<HTMLElement>(".w")].reduce(
-      (sum, w) => sum + w.offsetWidth,
-      0,
-    );
-  const joiner = head.querySelector<HTMLElement>("[data-joiner]");
-  return lines === 1
-    ? runs.reduce((sum, r) => sum + runWidth(r), 0) + (joiner?.offsetWidth ?? 0)
-    : Math.max(...runs.map(runWidth));
 };
 
 const hasDescender = (text: string) =>
@@ -202,8 +212,9 @@ export default function Hero() {
           el.style.setProperty("--fit", `${size}px`);
           const wrapped =
             lines === 1 && head.offsetHeight > fit.heightEm * size * 1.4;
-          const overruns =
-            renderedWidth(head, lines) > band.clientWidth + 1;
+          // widthEm is fractional and font-accurate, so this predicts the
+          // set width instead of re-reading a rounded one
+          const overruns = fit.widthEm * size > band.clientWidth;
           if (!wrapped && !overruns) break;
           size = Math.floor(size * 0.96);
         }
