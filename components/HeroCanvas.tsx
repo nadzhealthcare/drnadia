@@ -165,7 +165,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
   return sh;
 }
 
-function makeTexture(gl: WebGLRenderingContext, img: HTMLImageElement) {
+function makeTexture(gl: WebGLRenderingContext, img: TexImageSource) {
   const tex = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, tex);
   // sources are not power-of-two, so clamp + linear, no mipmaps
@@ -177,6 +177,25 @@ function makeTexture(gl: WebGLRenderingContext, img: HTMLImageElement) {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
   return tex;
 }
+
+/**
+ * A 2466px plate is far more than a phone can resolve, and four of them at
+ * full size is tens of megabytes of texture memory for a 390px screen — enough
+ * for a mobile GPU to refuse the upload and leave the hero blank. Scale each
+ * plate to what the drawing buffer can actually show before it goes up.
+ */
+const downscale = (img: HTMLImageElement, maxPx: number): TexImageSource => {
+  if (img.naturalWidth <= maxPx) return img;
+  const k = maxPx / img.naturalWidth;
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.naturalWidth * k);
+  c.height = Math.round(img.naturalHeight * k);
+  c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+  return c;
+};
+
+/** textures that never arrive would otherwise leave the hero black forever */
+const TEXTURE_TIMEOUT_MS = 9000;
 
 /** how long a resting pointer holds the spotlight before the flow takes over */
 const IDLE_MS = 2200;
@@ -314,6 +333,20 @@ export default function HeroCanvas({ index }: { index: number }) {
     let disposed = false;
     let visible = true;
 
+    /** stop drawing and hand over to the plain <img>, which shows the picture */
+    const giveUp = () => {
+      if (disposed) return;
+      disposed = true;
+      cancelAnimationFrame(raf);
+      setFallback(true);
+    };
+
+    // a lost context on mobile is common under memory pressure
+    canvas.addEventListener("webglcontextlost", (e) => {
+      e.preventDefault();
+      giveUp();
+    });
+
     // ── state ───────────────────────────────────────────────
     /*
      * The spotlight follows the pointer while it is over the canvas and
@@ -444,13 +477,17 @@ export default function HeroCanvas({ index }: { index: number }) {
     let ready = 0;
     const wanted = units.length;
 
+    // the drawing buffer is already sized by resize(), so it says exactly how
+    // much detail is worth uploading
+    const maxTex = Math.max(1280, canvas.width);
+
     const load = (src: string, unit: number) =>
       new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
           if (disposed) return resolve();
           gl.activeTexture(gl.TEXTURE0 + unit);
-          makeTexture(gl, img);
+          makeTexture(gl, downscale(img, maxTex));
           ready++;
           resolve();
         };
@@ -458,13 +495,26 @@ export default function HeroCanvas({ index }: { index: number }) {
         img.src = src;
       });
 
+    /*
+     * A request that neither loads nor errors leaves this promise pending and
+     * the canvas at opacity 0 — a black hero with no way out. The timer turns
+     * that into the still image instead.
+     */
+    const bail = window.setTimeout(() => {
+      if (ready < wanted) giveUp();
+    }, TEXTURE_TIMEOUT_MS);
+
     Promise.all(units.map((src, i) => load(src, i)))
       .then(() => {
         if (disposed) return;
+        window.clearTimeout(bail);
         bindSlides();
         wrap.dataset.ready = "1";
       })
-      .catch(() => setFallback(true));
+      .catch(() => {
+        window.clearTimeout(bail);
+        giveUp();
+      });
 
     resize();
     bindSlides();
@@ -550,6 +600,7 @@ export default function HeroCanvas({ index }: { index: number }) {
 
     return () => {
       disposed = true;
+      window.clearTimeout(bail);
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();

@@ -83,6 +83,24 @@ const fitHeadline = (
   };
 };
 
+/**
+ * Width of the widest line as laid out right now. Sums the glyph spans'
+ * `offsetWidth` for the same reason the fit does: the blur-in transforms them,
+ * and a rect-based read would report the animation rather than the layout.
+ */
+const renderedWidth = (head: HTMLElement, lines: number) => {
+  const runs = [...head.querySelectorAll<HTMLElement>(".blurText")];
+  const runWidth = (r: HTMLElement) =>
+    [...r.querySelectorAll<HTMLElement>(".w")].reduce(
+      (sum, w) => sum + w.offsetWidth,
+      0,
+    );
+  const joiner = head.querySelector<HTMLElement>("[data-joiner]");
+  return lines === 1
+    ? runs.reduce((sum, r) => sum + runWidth(r), 0) + (joiner?.offsetWidth ?? 0)
+    : Math.max(...runs.map(runWidth));
+};
+
 const hasDescender = (text: string) =>
   text
     .split("*")
@@ -172,16 +190,22 @@ export default function Hero() {
       let size = fit && Math.floor(fit.size);
 
       /*
-       * One line has to stay one line. If the measurement was still a shade
-       * optimistic the line wraps, which both doubles the height and drops the
-       * fill to whichever run is longer — so apply, check the rendered height
-       * against what a single line should be, and ease down until it holds.
+       * Apply, then check what actually rendered and ease down until it holds.
+       * Two ways the first guess can be a shade optimistic: a single line can
+       * wrap, which doubles the height and drops the fill to whichever run is
+       * longer; and the line can simply overrun the band, which the clipped
+       * band then cuts mid-word. The second is what happens when the fit was
+       * taken against the fallback face and the real one sets wider.
        */
-      if (fit && size && lines === 1) {
-        for (let i = 0; i < 4; i++) {
+      if (fit && size) {
+        for (let i = 0; i < 6; i++) {
           el.style.setProperty("--fit", `${size}px`);
-          if (head.offsetHeight < fit.heightEm * size * 1.4) break;
-          size = Math.floor(size * 0.97);
+          const wrapped =
+            lines === 1 && head.offsetHeight > fit.heightEm * size * 1.4;
+          const overruns =
+            renderedWidth(head, lines) > band.clientWidth + 1;
+          if (!wrapped && !overruns) break;
+          size = Math.floor(size * 0.96);
         }
       }
 
@@ -203,7 +227,22 @@ export default function Hero() {
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     measure();
-    return () => ro.disconnect();
+
+    /*
+     * Measure again once the webfonts land. The fit comes from real glyph
+     * widths, and the first pass runs against the fallback face — which sets
+     * narrower than Playfair does, so the headline is sized too large and
+     * overflows its band the moment the real face swaps in.
+     */
+    let alive = true;
+    document.fonts?.ready.then(() => {
+      if (alive) measure();
+    });
+
+    return () => {
+      alive = false;
+      ro.disconnect();
+    };
   }, [index]);
 
   // auto-advance, held while the pointer is exploring the reveal
