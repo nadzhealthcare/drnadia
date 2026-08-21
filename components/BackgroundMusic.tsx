@@ -62,10 +62,18 @@ export default function BackgroundMusic() {
       );
     };
     const off = () => {
+      window.removeEventListener("preloader-done", start);
       window.removeEventListener("pointerdown", start);
       window.removeEventListener("keydown", start);
       window.removeEventListener("touchstart", start);
     };
+    /*
+     * Try the moment the loader clears. Browsers refuse audible autoplay
+     * without a gesture, so this only succeeds where the visitor has already
+     * touched the page or the browser has decided to allow it — and where it
+     * does not, the gesture listeners below are still waiting.
+     */
+    window.addEventListener("preloader-done", start);
     window.addEventListener("pointerdown", start, { passive: true });
     window.addEventListener("touchstart", start, { passive: true });
     window.addEventListener("keydown", start);

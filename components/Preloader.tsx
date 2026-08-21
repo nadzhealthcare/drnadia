@@ -48,6 +48,8 @@ export default function Preloader() {
       if (done) return;
       done = true;
       window.dispatchEvent(new CustomEvent("scroll-lock", { detail: false }));
+      // the page is now the visitor's; anything waiting on that can begin
+      window.dispatchEvent(new CustomEvent("preloader-done"));
 
       if (reduced) {
         setGone(true);

@@ -131,18 +131,6 @@
   letter-spacing: -0.01em;
 }
 
-.mark {
-  position: absolute;
-  left: var(--pad);
-  bottom: clamp(24px, 5vh, 56px);
-  z-index: 3;
-}
-
-/*
- * Unpinned — narrow viewports and reduced motion. No flight, no 3D: the cards
- * simply sit under the quote in a row. Nothing writes a transform to them in
- * these cases, because the timeline is never created.
- */
 /* ── lightbox ───────────────────────────────────────────── */
 .modal {
   position: fixed;
@@ -216,6 +204,11 @@
   }
 }
 
+/*
+ * Unpinned — narrow viewports and reduced motion. No flight, no 3D: the cards
+ * simply sit under the quote. Nothing writes a transform to them in these
+ * cases, because the timeline is never created.
+ */
 @media (max-width: 900px), (prefers-reduced-motion: reduce) {
   /*
    * The field comes first in the DOM because it is absolutely positioned on
@@ -234,9 +227,6 @@
   }
   .field {
     order: 2;
-  }
-  .mark {
-    order: 3;
   }
   .line {
     max-width: 18ch;
@@ -271,9 +261,5 @@
     position: static;
     inset: auto;
     animation: none;
-  }
-  .mark {
-    position: static;
-    margin-top: 26px;
   }
 }

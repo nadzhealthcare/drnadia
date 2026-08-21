@@ -185,7 +185,6 @@ export default function BigQuote() {
         />
       </div>
 
-      <p className={`micro ${s.mark}`}>02</p>
 
       {open !== null && (
         <div
